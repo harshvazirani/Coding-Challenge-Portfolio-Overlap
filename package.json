@@ -1,0 +1,18 @@
+{
+  "name": "geektrust",
+  "version": "1.0.0",
+  "description": "Portfolio Overlap",
+  "main": "geektrust.js",
+  "scripts": {
+    "start": "node geektrust.js",
+    "test": "nyc mocha"
+  },
+  "author": "Harsh Vazirani",
+  "license": "ISC",
+  "dependencies": {
+    "mocha": "^9.1.3"
+  },
+  "devDependencies": {
+    "nyc": "^15.1.0"
+  }
+}
