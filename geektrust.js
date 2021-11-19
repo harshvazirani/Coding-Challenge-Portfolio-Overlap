@@ -1,39 +1,35 @@
-const fs = require("fs"); 
-const filename = process.argv[2]; //filename to be passed as a command line argument
-const {calculateOverlap, addStock} = require('./logic') //Command handling logic
+const fs = require("fs")
+const { Investor } = require("./logic")
 
-//Parse the input file and act out the commands 
-let file_data;
-function parse_input(err, data) {
-  if (err) throw err;
+const filename = process.argv[2]
+const CALCULATE_OVERLAP = "CALCULATE_OVERLAP"
+const ADD_STOCK = "ADD_STOCK"
 
-  file_data = data.toString().split("\r\n");
-  const portfolio = file_data[0].split(" ");
-  portfolio.shift();
+function parseInput(input) {
+  const portfolio = input.shift().split(" ")
+  portfolio.shift()
+  const investor = new Investor(portfolio)
 
-  for (let i = 1; i < file_data.length; i++) {
-    const command = file_data[i].split(" ");
-    try{       
-          if (command[0] === "CALCULATE_OVERLAP") {
-             calculateOverlap(portfolio, command[1]);
-          } else if (command[0] === "ADD_STOCK") {
-            const fund = command[1];
-            command.shift();
-            command.shift();
-            const stock = command.join(" ");
-            addStock(fund, stock);
-          }
+  for (let line of input) {
+    line = line.split(" ")
+    const command = line.shift()
+    
+    if (command === CALCULATE_OVERLAP) {
+      investor.calculateOverlap(line.shift())
+    } else if (command === ADD_STOCK) {
+      const fund = line.shift()
+      const stock = line.join(" ")
+      investor.data.addStock(fund, stock)
     }
-     catch(err) {
-      throw new Error(err);
-    }
+    else throw new Error("Wrong Command")
   }
 }
 
-
-//Read the input file
 try {
-  fs.readFile(filename, "utf8", (err, data) => parse_input(err, data));
+  fs.readFile(filename, "utf8", (err, data) => {
+    if (err) throw err
+    parseInput(data.toString().split("\n"))
+  })
 } catch (err) {
-  console.log(err);
+  console.log(err)
 }

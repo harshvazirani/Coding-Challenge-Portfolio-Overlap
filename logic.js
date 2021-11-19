@@ -1,42 +1,64 @@
-const { funds } = require("./data/stock_data.json"); //import fund data from json file. funds is an array.
+const { funds } = require("./data/stock_data.json");
 
-//To map fund name with it's index in the funds array
-const fund_map = new Map();
-for (let i = 0; i < funds.length; i++) {
-  fund_map.set(funds[i].name, i);
-}
-
-//for commands of type "CALCULATE_OVERLAP"
-function calculateOverlap(portfolio, fund2) {
-  if (fund_map.get(fund2) === undefined) {
-    console.log("FUND_NOT_FOUND");
-    return "FUND_NOT_FOUND";
+class Data {
+  constructor(funds) {
+    this.funds = funds;
+    this.map = new Map();
+    for (let i = 0; i < funds.length; i++) {
+      this.map.set(funds[i].name, i);
+    }
   }
 
-  const values = [];
-  for (let fund1 of portfolio) {
-    const stocks1 = funds[fund_map.get(fund1)].stocks;
-    const stocks2 = funds[fund_map.get(fund2)].stocks;
-    const total = stocks1.length + stocks2.length;
-    let common = 0;
-    for (let stock of stocks1) if (stocks2.includes(stock)) common += 2;
-
-    const overlap = ((common / total) * 100).toFixed(2);
-    console.log(fund2, fund1, overlap + "%");
-    values.push(overlap); //For testing
-  }
-  return values;
-}
-
-//for commands of type "ADD_STOCK"
-function addStock(fund, stock) {
-  if (fund_map.get(fund) === undefined) {
-    console.log("FUND_NOT_FOUND");
-    return "FUND_NOT_FOUND";
+  getFund(fund) {
+    if (this.map.get(fund) === undefined) {
+      return null;
+    }
+    return this.funds[this.map.get(fund)];
   }
 
-  funds[fund_map.get(fund)].stocks.push(stock);
-  return funds[fund_map.get(fund)]; //for testing
+  getStocks(fund) {
+    if (this.getFund(fund)) return this.getFund(fund).stocks;
+    else return null;
+  }
+
+  addStock(fund, stock) {
+    if (this.getStocks(fund)) {
+      this.getStocks(fund).push(stock);
+      return true;
+    } else {
+      console.log("FUND_NOT_FOUND")
+      return false;}
+  }
 }
 
-module.exports = { calculateOverlap, addStock };
+class Investor {
+  constructor(portfolio) {
+    this.data = new Data(funds);
+    this.portfolio = portfolio;
+  }
+
+  calculateOverlap(newfund) {
+    const new_stocks = this.data.getStocks(newfund);
+    if(new_stocks === null) {
+      console.log("FUND_NOT_FOUND")
+      return null
+    }
+    const overlaps = [];
+    for (let fund of this.portfolio) {
+      const current_stocks = this.data.getStocks(fund);
+
+      let common = 0;
+      let total = current_stocks.length + new_stocks.length;
+      for (let stock of current_stocks)
+        if (new_stocks.includes(stock)) common++;
+
+      const overlap = (((2 * common) / total) * 100).toFixed(2);
+      if (overlap > 0) console.log(newfund, fund, overlap + "%");
+      overlaps.push(overlap);
+       
+    }
+    return overlaps;
+  }
+}
+
+module.exports = { Investor };
